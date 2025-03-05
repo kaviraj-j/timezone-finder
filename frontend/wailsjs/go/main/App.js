@@ -9,3 +9,7 @@ export function FindTimezone(arg1) {
 export function Greet(arg1) {
   return window['go']['main']['App']['Greet'](arg1);
 }
+
+export function SetTimezone(arg1) {
+  return window['go']['main']['App']['SetTimezone'](arg1);
+}

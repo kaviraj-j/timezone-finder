@@ -86,3 +86,23 @@
   font-size: 0.9em;
   transition: opacity 0.3s ease-in-out;
 }
+
+.context-menu {
+  position: absolute;
+  background: white;
+  border: 1px solid #ccc;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+  padding: 8px;
+  border-radius: 5px;
+  z-index: 1000;
+  color: rgb(10, 80, 160);
+}
+
+.context-menu div {
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+.context-menu div:hover {
+  background: #f0f0f0;
+}

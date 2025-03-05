@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/exec"
+	"runtime"
 	"strings"
 )
 
@@ -47,4 +50,62 @@ func (a *App) FindTimezone(tzKeyword string) []TzResponse {
 	}
 
 	return result
+}
+
+// Check if running as root/admin
+func isAdmin() bool {
+	switch runtime.GOOS {
+	case "windows":
+		cmd := exec.Command("net", "session")
+		err := cmd.Run()
+		return err == nil
+	case "linux", "darwin":
+		return os.Geteuid() == 0
+	default:
+		return false
+	}
+}
+
+// Relaunch the app as root/admin
+func relaunchAsAdmin() error {
+	switch runtime.GOOS {
+	case "windows":
+		// Relaunch using PowerShell with admin privileges
+		cmd := exec.Command("powershell", "Start-Process", os.Args[0], "-Verb", "runAs")
+		return cmd.Run()
+	case "linux":
+		cmd := exec.Command("sudo", os.Args[0])
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		return cmd.Run()
+	case "darwin":
+		cmd := exec.Command("osascript", "-e", fmt.Sprintf(`do shell script "%s" with administrator privileges`, os.Args[0]))
+		return cmd.Run()
+	default:
+		return fmt.Errorf("unsupported OS")
+	}
+}
+
+// SetTimezone changes the system timezone
+func (a *App) SetTimezone(timezoneCode string) string {
+	var cmd *exec.Cmd
+
+	switch runtime.GOOS {
+	case "linux":
+		cmd = exec.Command("pkexec", "timedatectl", "set-timezone", timezoneCode) // Uses GUI sudo
+	case "darwin":
+		cmd = exec.Command("osascript", "-e", fmt.Sprintf(`do shell script "systemsetup -settimezone %s" with administrator privileges`, timezoneCode))
+	case "windows":
+		cmd = exec.Command("tzutil", "/s", ianaToWindowsMap[timezoneCode])
+	default:
+		return "Unsupported OS"
+	}
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Sprintf("Error: %s\nOutput: %s", err, string(output))
+	}
+
+	return fmt.Sprintf("Success: %s", string(output))
 }

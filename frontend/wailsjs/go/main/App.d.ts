@@ -5,3 +5,5 @@ import {main} from '../models';
 export function FindTimezone(arg1:string):Promise<Array<main.TzResponse>>;
 
 export function Greet(arg1:string):Promise<string>;
+
+export function SetTimezone(arg1:string):Promise<string>;
